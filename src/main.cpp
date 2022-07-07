@@ -5,7 +5,7 @@
 #define Pln Serial.println
 #define P Serial.print
 
-#define NUM_LEDS      100
+#define NUM_LEDS      300 // 5m * 60leds/m
 #define LED_TYPE   WS2812B
 #define COLOR_ORDER   GRB
 #define DATA_PIN  A5
