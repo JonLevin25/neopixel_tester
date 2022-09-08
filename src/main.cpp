@@ -1,11 +1,10 @@
 #include <Arduino.h>
-
 #include "FastLED.h"
 
 #define Pln Serial.println
 #define P Serial.print
 
-#define NUM_LEDS      60 // Max 3A (Usually less)
+#define NUM_LEDS      120 //   (120= 2m @60/m) Max 6A (Usually less)
 #define LED_TYPE   WS2812B
 #define COLOR_ORDER   GRB
 #define DATA_PIN  A5
@@ -17,23 +16,22 @@ LEDS_T leds;
 
 #define COLOR_DELAY 750
 
-
-void test_leds(LEDS_T leds, uint32_t color_delay)
+struct color_config_t
 {
-  static const struct { CRGB col; const char* name; } cols[] =
-  {
-      {CRGB(255, 0, 0), "red"},
-      {CRGB(0, 255, 0), "green"},
-      {CRGB(0, 0, 255), "blue"},
-      {CRGB(255, 255, 255), "white"},
-  };
+  const uint16_t delay;
+  const CRGB col;
+  const char* name;
+};
 
-  for (auto&& x : cols)
+void test_leds_solid(LEDS_T leds, const color_config_t cols[], size_t length)
+{
+  for (size_t i=0; i < length; i++)
   {
+    color_config_t x = cols[i];
     Pln(x.name);
     leds.fill_solid(x.col);
     FastLED.show();
-    delay(color_delay);
+    delay(x.delay);
   }
 
   leds = CRGB::Black;
@@ -42,6 +40,7 @@ void test_leds(LEDS_T leds, uint32_t color_delay)
 
 
 void setup() {
+  Serial.begin(9600);
   delay( 2000 ); //safety startup delay
     FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS)
     .setCorrection(TypicalLEDStrip);
@@ -50,5 +49,27 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  test_leds(leds, COLOR_DELAY);
+  const static color_config_t cols[] =
+  {
+      {COLOR_DELAY, CRGB(255, 0, 0), "red"},
+      {COLOR_DELAY, CRGB(0, 255, 0), "green"},
+      {COLOR_DELAY, CRGB(0, 0, 255), "blue"},
+
+      // often got stuck on white (large current?)
+      // {300, CRGB(255, 255, 255), "white"}, // dont show white for too long
+  };
+  size_t num_colors = sizeof(cols)/sizeof(cols[0]);
+  
+
+  test_leds_solid(leds, cols, num_colors);
+  
+  Pln("rainbow");
+  leds.fill_rainbow(0, uint8_t(255u / NUM_LEDS));
+  FastLED.show();
+  delay(COLOR_DELAY);
+
+  Pln("Off");
+  leds.fill_solid(CRGB::Black);
+  FastLED.show();
+  delay(COLOR_DELAY);
 }
