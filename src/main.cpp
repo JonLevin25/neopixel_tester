@@ -4,17 +4,18 @@
 #define Pln Serial.println
 #define P Serial.print
 
-#define NUM_LEDS      120 //   (120= 2m @60/m) Max 6A (Usually less)
+// arduino nano cant seem to handle 300+ leds. 240 worked. Lacking Memory?
+#define NUM_LEDS      240 //   (120= 2m @60/m) Max 6A (Usually less)
+#define BRIGHTNESS 127
+
 #define LED_TYPE   WS2812B
 #define COLOR_ORDER   GRB
-#define DATA_PIN  A5
-//#define CLK_PIN       4
-#define VOLTS          12
+#define DATA_PIN  13
 
 #define LEDS_T CRGBArray<NUM_LEDS>
 LEDS_T leds;
 
-#define COLOR_DELAY 750
+#define COLOR_DELAY 1200
 
 struct color_config_t
 {
@@ -44,6 +45,8 @@ void setup() {
   delay( 2000 ); //safety startup delay
     FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS)
     .setCorrection(TypicalLEDStrip);
+  
+  FastLED.setBrightness(BRIGHTNESS);
   // put your setup code here, to run once:
 }
 
@@ -64,7 +67,7 @@ void loop() {
   test_leds_solid(leds, cols, num_colors);
   
   Pln("rainbow");
-  leds.fill_rainbow(0, uint8_t(255u / NUM_LEDS));
+  leds.fill_rainbow(0, max(1u, 255u / NUM_LEDS));
   FastLED.show();
   delay(COLOR_DELAY);
 
